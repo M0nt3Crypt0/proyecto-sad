@@ -1,12 +1,12 @@
 {
   "dependencies": {
+    "express": "^4.18.2",
     "zeromq": "^5.2.8"
   },
   "name": "proyecto-sad",
   "description": "Proyecto de prácticas de SAD",
   "version": "1.0.0",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
