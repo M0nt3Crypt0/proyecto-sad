@@ -1,6 +1,8 @@
 // Librerías
-const zmq = require('zeromq');
 const express = require('express');
+const zmq = require('zmq');
+
+const app = express();
 
 // Puertos y objetos
 const FRONTPORT = 9998;
@@ -8,8 +10,11 @@ const BACKPORT = 9999;
 
 // Declaración de los sockets 
 
-// Socket cliente (pub-sub(???))
 
+// REST Api
+app.listen(FRONTPORT, () => {
+	console.log("Server en puerto " + FRONTPORT);
+});
 
 
 // Socket broker-kafka (router-router???)
@@ -23,20 +28,20 @@ function SendJob() {
 	return id;
 }
 
-function GetStatus(String id) {
+function GetStatus(id) {
 	let status;
 
 	return status;
 }
 
 // Delete from queue
-function GetResult(String id) {
+function GetResult(id) {
 	let res;
 
 	return res;
 }
 
-function ListJobs(String cliente) {
+function ListJobs(cliente) {
 	let jobs;
 
 	return jobs
