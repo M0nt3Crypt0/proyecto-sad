@@ -1,6 +1,5 @@
 // Librerías
 const express = require('express');
-const zmq = require('zmq');
 
 const app = express();
 
