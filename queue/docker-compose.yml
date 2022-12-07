@@ -46,3 +46,8 @@ services:
    ksqldb-cli: 
       image: confluentinc/ksqldb-cli:0.28.2 
       container_name: ksqldb-cli 
+      depends_on: 
+         - broker 
+         - ksqldb-server 
+      entrypoint: /bin/sh 
+      tty: true
