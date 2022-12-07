@@ -1,26 +1,19 @@
-# proyecto-triste
-Proyecto de prácticas de SAD
+# Proyecto Final de SAD
+Proyecto final de la asignatura SAD del master Muiinf de la UPV
 
-Ejecutor de código a partir de un repo git
+El proyecto crea un sistema distribuido en forma de FaaS que sirve para ejecutar un proyecto a través de un git y devolver el resultado
 
-Código: NodeJS
-API: REST
-Sistemas de colas en Kafka
+# El proyecto consta de las siguientes partes
 
+## Frontend
+ * Controller.js: REST api programada en express
+ * Server.js: se encarga de la escucha del servicio
 
+## Queue
+ * Kafka.js: Se encarga de hacer de intermediario entre KAfka y nuestro sistema
+ * docker-compose.yml: Sirve para lanzar una imagen de Kafka
 
-# Tareas a realizar
- NO USAR ZMQ
-
-## frontend
- * REST API
-
-## backend
- * Worker
+## Backend
+ * Worker.js: Obtiene un trabajo de la cola y lo ejecuta
 
 
-## colas
- * REST API (?)
- * Crear docker compose de kafka
- * Crear vistas
- * Incluir vistas en docker compose
