@@ -1,6 +1,5 @@
 // Librerías
 const express = require('express');
-
 const app = express();
 
 // Puertos y objetos
