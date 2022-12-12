@@ -9,6 +9,7 @@ El proyecto crea un sistema distribuido en forma de FaaS que sirve para ejecutar
  * Controller.js: REST api programada en express
  * Server.js: se encarga de la escucha del servicio
 
+
 ## Queue
  * Kafka.js: Se encarga de hacer de intermediario entre KAfka y nuestro sistema
  * docker-compose.yml: Sirve para lanzar una imagen de Kafka
