@@ -34,7 +34,7 @@ router.get('/status', (req, res) => {
 	// Devolver el estado del trabajo
 	// debe aportar id del trabajo
 	let status
-	res.send(JSON.stringify(status);
+	res.send(JSON.stringify(status));
 });
 
 router.get('/jobs', (req, res) => {
