@@ -25,7 +25,6 @@ const main = async () => {
 
          let id = msg.jobId
          let url = msg.git
-
          
          if(!download(url)) {
             exit
@@ -38,7 +37,7 @@ const main = async () => {
             topic: 'JobResult',
             messages: [
                {
-                  ID: jobId,
+                  ID: id,
                   RES: result
                }
             ]
