@@ -4,9 +4,6 @@ const express = require('express')
 const jwt = require('jwt-decode')
 const keycloak = require('keycloak-connect')
 const crypto = require('crypto')
-
-// Local dependencies
-const kafka = require('../queue/kafka')  
   
 
 const app = express();

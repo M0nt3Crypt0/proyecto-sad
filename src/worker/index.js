@@ -9,9 +9,6 @@ const consumer = kafka.consumer({
 })
 const producer = kafka.producer()
 
-
-const topic = "JobSolution"
-
 const main = async () => {
    await producer.connect()
    await consumer.connect()
@@ -23,21 +20,30 @@ const main = async () => {
    await consumer.run({
       eachMessage: async ({ message }) => {
          console.log("Trabajo recibido")
-         const addr = message.value.toString().slice(1,-1)
-         const auth = message.key.toString()
 
-         const location = "./"+auth+"/"
+         let msg = JSON.parse(message)
+
+         let id = msg.jobId
+         let url = msg.git
          
-         if(!download(location)) {
+         if(!download(url)) {
             exit
          }
 
-         if(await control){
-            
-   	   }
-
          shelljs.exec('cd /root; npm install')
          let result = shelljs.exec('npm run')
+         
+         await producer.send({
+            topic: 'JobResult',
+            messages: [
+               {
+                  ID: id,
+                  RES: result
+               }
+            ]
+         })
+
+         shelljs.exec('rm *')
       }
    })
 }
@@ -59,21 +65,4 @@ function download(url) {
          return true
       }
    })
-}
-
-function runPython(rutaAIndex) {
-   var largeDataSet = [];
-   // spawn new child process to call the python script
-   const python = spawn('python', [rutaAIndex + 'index.py']);
-   // collect data from script
-   python.stdout.on('data', function (data) {
-      console.log('Pipe data from python script ...');
-      largeDataSet.push(data);
-   });
-   // in close event we are sure that stream is from child process is closed
-   python.on('close', (code) => {
-      console.log(`child process close all stdio with code ${code}`);
-      // send data to browser
-      res.send(largeDataSet.join(""))
-   });
 }
