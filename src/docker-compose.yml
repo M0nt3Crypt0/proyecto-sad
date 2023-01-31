@@ -1,7 +1,9 @@
-version: '2'
+version: '1'
 
 services:
    frontend:
+      image: worker
+      environment:
 
    worker:
 
@@ -33,3 +35,4 @@ services:
          KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1 
 
    keycloak:
+      image: image: quay.io/keycloak/keycloak:20.0.3
