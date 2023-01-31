@@ -4,10 +4,12 @@ FROM alpine
 # Instalar dependencias
 RUN apk update && apk add nodejs
 RUN apk update && apk add git
+RUN apk update && apk add python3
 
 # Archivos 
-COPY . /frontend
+COPY . /worker
 
 # Ejecución del microservicio
-WORKDIR /frontend
-CMD ["node", "index.js"]
+WORKDIR /worker
+CMD ["node", "worker.js"]
+

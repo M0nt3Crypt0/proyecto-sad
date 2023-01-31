@@ -1,108 +1,85 @@
-const kafka = require('./kafka')    
+// Dependencies
+const kafka = require('kafkajs')
 const express = require('express')
-const { v4: uuidv4 } = require('uuid')
-const session = require('express-session')
-const { setMaxIdleHTTPParsers } = require('http')
-const consumer = kafka.consumer({
-    groupId: "servers"
-})
-var memoryStore = new session.MemoryStore();
-const producer = kafka.producer()      
-//const admin = kafka.admin()
-const keycloak = require('./config/keycloak-config.js').initKeycloak(memoryStore)
+const jwt = require('jwt-decode')
+const keycloak = require('keycloak-connect')
+const crypto = require('crypto')
 
+// Local dependencies
+const kafka = require('../queue/kafka')  
+  
 
-var app = express()
-app.use(session({
-   secret: 'some secret',
-   resave: false,
-   saveUninitialized: true,
-   store: memoryStore
- }));
+const app = express();
+app.use(keycloak.middleware())
 
-app.use(express.urlencoded())
-app.use(keycloak.middleware({
-   logout: '/logout',
-   admin: '/'
- }));
+let jobs = new Map()
+let jobsResults = new Map()
 
-//Cambiar a usuario de keycloack
-const user = "user1"
-const jobs = new Map()
-const jobsResult = new Map()
-var token = ""
+// Insertar nuevo trabajo en la cola
+app.post("/newJob", keycloak.protect(process.env.KEYCLOAK_ROLE), async (req, res) => {
+   let TOKEN = decoder(req.headers.authorization)
+	let user = TOKEN.preferred_username
+   let git = req.body.JobUrl
 
-const main = async () => {
-   /*await admin.connect()
-   await admin.createTopics({
-      waitForLeaders: true,
-      topic: [{topic: process.env.TOPIC_COLA_SALIDA}, 
-         {topic: process.env.TOPIC_COLA_ENTRADA}
-      ]
-   })*/
+   let jobId = crypto.randomUUID()
+
+   let producer = kafka.producer()
+
    await producer.connect()
-   await consumer.connect()
-   await consumer.subscribe({
-      topic: "Salida",
-      fromBeginning: true
+   await producer.send({
+      topic: 'JobsQueue',
+      messages: [
+         {
+            ID: jobId,
+            URL: git
+         }
+      ]
    })
+   jobs.set(user, jobId)
 
-   await consumer.run({
-      eachMessage: async ({ message }) => {
-         const result = message.value.toString()
-         const auth = message.key.toString().slice(0,10)
+   res.send('Trabajo enviado con la id: ' + jobId)
+})
 
-         jobsResult.set(auth,result)
-      }
-   })
+// Obtener resultado
+app.get("/result/:idJob", keycloak.protect(process.env.KEYCLOAK_ROLE), async (req, res) => {
+   let id = req.params.idJob
 
-   const testController = require('./test-controller.js')
-   app.use('/test', testController)
+   let result = jobsResults.get(id)
 
-   app.get('/index', function(req,res,next) {
-      //token = req.header('Authorization')
-      res.send(`
-      <h2>Sistema de procesado de trabajos</h2>
+   if (result && result != "En processo") {
+      req.res('Resultado: ' + result)
+   } else {
+      req.res('No se ha encontrado resultado para el trabajo')
+   }
+})
 
-      <form method= "POST" action="/test/enviar_trabajo">
-         <label>Enviar trabajo</label><br>
-         <input type="text" name="url" placeholder="URL del repositorio GIT">
-         <input type="text" name="token" placeholder="Tu token">
-         <input type="submit" value="Enviar Trabajo">
-      </form>
-
-      <br>
-
-      <form method= "POST" action="/test/estado_trabajo">
-         <label>Comprobar estado de trabajo</label><br>
-         <input type="text" name="codigo" placeholder="Codigo de trabajo">
-         <input type="text" name="token" placeholder="Tu token">
-         <input type="submit" value="Comprobar trabajo">
-      </form>
-
-      <br>
-
-      <form method= "POST" action="/test/lista_trabajo">
-         <label>Listado de trabajos enviados</label><br>
-         <input type="text" name="token" placeholder="Tu token">
-         <input type="submit" value="Comprobar listado">
-      </form>
-      `)
-   })
+// Status del trabajo
+app.get("/status/:idJob", keycloak.protect(process.env.KEYCLOAK_ROLE),  async (req, res) => {
+   let id = req.params.idJob
    
-   app.listen(3000, () => {
-      console.log('Escuchando')
-   })
+   if (jobsResult.get(id) != "En processo") {
+      res.send('Job finished! Go to: /result/'+id)
+   } else if (jobsResults.get(id)) {
+      res.send('The job is executing')
+   } else if (jobs.get(id)) {
+      res.send('The job is in the queue')
+   } else {
+      res.send('Job not found')
+   }
+})
+
+// Devolver todos los trabajsos enviados por del usuario
+app.get("/user/jobs", keycloak.protect(process.env.KEYCLOAK_ROLE), async (req, res) => {
+	var token = decoder(req.headers.authorization)
+	var user = token.preferred_username
+	return res.send(jobs.get(user))
+});
+
+function decoder(header_auth) {
+   var rawToken = header_auth.toString().split(" ")
+   return jwt(rawToken[1], { payload: true })
 }
 
-main().catch(async error => {
-   console.error(error)
-   try {
-      await consumer.disconnect()
-   } catch (e) {
-      console.error('Fallo al intentar desconectar el consumidor', e)
-   }
-   process.exit(1)
+app.listen(3000,() => {
+   console.log('Git executor frontend running in port 3000')
 })
-
-module.exports = { producer, token }
